@@ -1,0 +1,21 @@
+{
+  "version": "5.22",
+  "steps": [
+    {
+      "tag": "CreateTable",
+      "model": "CasinoCategory"
+    },
+    {
+      "tag": "CreateTable",
+      "model": "CasinoProvider"
+    },
+    {
+      "tag": "CreateTable",
+      "model": "CasinoGame"
+    },
+    {
+      "tag": "CreateTable",
+      "model": "CasinoPromotion"
+    }
+  ]
+}

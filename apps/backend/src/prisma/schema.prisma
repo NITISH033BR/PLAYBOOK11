@@ -1,0 +1,529 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String            @id @default(uuid()) @db.Uuid
+  email                String            @unique
+  username             String            @unique
+  passwordHash         String            @map("password_hash")
+  displayName          String            @map("display_name")
+  role                 UserRole          @default(USER)
+  referredById         String?           @map("referred_by_id") @db.Uuid
+  referralCode         String            @unique @map("referral_code")
+  createdById          String?           @map("created_by_id") @db.Uuid
+  createdBy            User?             @relation("CreatedUsers", fields: [createdById], references: [id])
+  createdUsers         User[]            @relation("CreatedUsers")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  deletedAt            DateTime?         @map("deleted_at")
+  deletedBy            String?           @map("deleted_by") @db.Uuid
+  lastLoginAt          DateTime?         @map("last_login_at")
+  lastLoginIp          String?           @map("last_login_ip")
+  status               UserStatus        @default(ACTIVE)
+  suspendedAt          DateTime?         @map("suspended_at")
+  suspendedBy          String?           @map("suspended_by") @db.Uuid
+  suspensionReason     String?           @map("suspension_reason")
+  suspensionReasonType SuspensionReason? @map("suspension_reason_type")
+  audits               AuditLog[]
+  bets                 Bet[]
+  casinoSessions       CasinoSession[]
+  commissionsGiven     Commission[]      @relation("CommissionFrom")
+  commissionsEarned    Commission[]      @relation("CommissionTo")
+  notifications        Notification[]
+  referredUsers        Referral[]        @relation("ReferredRelation")
+  referrerRefs         Referral[]        @relation("ReferrerRelation")
+  refreshTokens        RefreshToken[]
+  transactions         Transaction[]
+  hierarchy            UserHierarchy?
+  referredBy           User?             @relation("Referrals", fields: [referredById], references: [id])
+  referrals            User[]            @relation("Referrals")
+  wallet               Wallet?
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Wallet {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @unique @map("user_id") @db.Uuid
+  balance      Decimal       @default(0) @db.Decimal(12, 2)
+  bonus        Decimal       @default(0) @db.Decimal(12, 2)
+  locked       Decimal       @default(0) @db.Decimal(12, 2)
+  version      Int           @default(0)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  transactions Transaction[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id            String            @id @default(uuid()) @db.Uuid
+  walletId      String            @map("wallet_id") @db.Uuid
+  userId        String            @map("user_id") @db.Uuid
+  type          TransactionType
+  amount        Decimal           @db.Decimal(12, 2)
+  balanceBefore Decimal           @map("balance_before") @db.Decimal(12, 2)
+  balanceAfter  Decimal           @map("balance_after") @db.Decimal(12, 2)
+  status        TransactionStatus @default(PENDING)
+  reference     String?
+  description   String?
+  createdAt     DateTime          @default(now()) @map("created_at")
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet        Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model Sport {
+  id      String   @id @default(uuid()) @db.Uuid
+  name    String   @unique
+  slug    String   @unique
+  icon    String?
+  active  Boolean  @default(true)
+  leagues League[]
+  teams   Team[]
+
+  @@map("sports")
+}
+
+model League {
+  id      String  @id @default(uuid()) @db.Uuid
+  sportId String  @map("sport_id") @db.Uuid
+  name    String
+  country String?
+  logo    String?
+  sport   Sport   @relation(fields: [sportId], references: [id])
+  matches Match[]
+
+  @@map("leagues")
+}
+
+model Team {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  shortName   String? @map("short_name")
+  logo        String?
+  sportId     String  @map("sport_id") @db.Uuid
+  awayMatches Match[] @relation("AwayTeam")
+  homeMatches Match[] @relation("HomeTeam")
+  sport       Sport   @relation(fields: [sportId], references: [id])
+
+  @@map("teams")
+}
+
+model Match {
+  id            String      @id @default(uuid()) @db.Uuid
+  leagueId      String      @map("league_id") @db.Uuid
+  homeTeamId    String      @map("home_team_id") @db.Uuid
+  awayTeamId    String      @map("away_team_id") @db.Uuid
+  externalId    String?     @unique @map("external_id")
+  externalSource String?    @map("external_source")
+  startTime     DateTime    @map("start_time")
+  status        MatchStatus @default(SCHEDULED)
+  homeScore   Int?        @map("home_score")
+  awayScore   Int?        @map("away_score")
+  homeWickets Int?        @map("home_wickets")
+  awayWickets Int?        @map("away_wickets")
+  homeOvers   Decimal?    @map("home_overs") @db.Decimal(4, 1)
+  awayOvers   Decimal?    @map("away_overs") @db.Decimal(4, 1)
+  innings     Int?        @default(1)
+  battingTeam String?     @map("batting_team")
+  bowlingTeam String?     @map("bowling_team")
+  currentRr   Decimal?    @map("current_rr") @db.Decimal(5, 2)
+  requiredRr  Decimal?    @map("required_rr") @db.Decimal(5, 2)
+  lastWicket  Json?
+  currentOver Json?
+  batsmen     Json?
+  bowler      Json?
+  partnership Json?
+  commentary  Json?
+  events      Json?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  markets     Market[]
+  awayTeam    Team        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homeTeam    Team        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  league      League      @relation(fields: [leagueId], references: [id])
+
+  @@map("matches")
+}
+
+model Market {
+  id        String       @id @default(uuid()) @db.Uuid
+  matchId   String       @map("match_id") @db.Uuid
+  name      String
+  type      MarketType
+  status    MarketStatus @default(OPEN)
+  createdAt DateTime     @default(now()) @map("created_at")
+  betLegs   BetLeg[]
+  match     Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  odds      Odds[]
+
+  @@map("markets")
+}
+
+model Odds {
+  id        String   @id @default(uuid()) @db.Uuid
+  marketId  String   @map("market_id") @db.Uuid
+  label     String
+  type      OddsType @default(BACK)
+  value     Decimal  @db.Decimal(8, 2)
+  liquidity Decimal  @default(0) @db.Decimal(12, 2)
+  active    Boolean  @default(true)
+  betLegs   BetLeg[]
+  market    Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+
+  @@map("odds")
+}
+
+model Bet {
+  id                     String                  @id @default(uuid()) @db.Uuid
+  userId                 String                  @map("user_id") @db.Uuid
+  type                   BetType
+  stake                  Decimal                 @db.Decimal(12, 2)
+  totalOdds              Decimal                 @map("total_odds") @db.Decimal(8, 2)
+  potentialWin           Decimal                 @map("potential_win") @db.Decimal(12, 2)
+  status                 BetStatus               @default(PENDING)
+  cashoutAmount          Decimal?                @map("cashout_amount") @db.Decimal(12, 2)
+  createdAt              DateTime                @default(now()) @map("created_at")
+  settledAt              DateTime?               @map("settled_at")
+  legs                   BetLeg[]
+  user                   User                    @relation(fields: [userId], references: [id])
+  commissionTransactions CommissionTransaction[]
+  commissions            Commission[]
+
+  @@map("bets")
+}
+
+model BetLeg {
+  id        String       @id @default(uuid()) @db.Uuid
+  betId     String       @map("bet_id") @db.Uuid
+  marketId  String       @map("market_id") @db.Uuid
+  oddsId    String       @map("odds_id") @db.Uuid
+  oddsValue Decimal      @map("odds_value") @db.Decimal(8, 2)
+  status    BetLegStatus @default(PENDING)
+  settledAt DateTime?    @map("settled_at")
+  bet       Bet          @relation(fields: [betId], references: [id], onDelete: Cascade)
+  market    Market       @relation(fields: [marketId], references: [id])
+  odds      Odds         @relation(fields: [oddsId], references: [id])
+
+  @@map("bet_legs")
+}
+
+model Referral {
+  id               String   @id @default(uuid()) @db.Uuid
+  referrerId       String   @map("referrer_id") @db.Uuid
+  referredId       String   @map("referred_id") @db.Uuid
+  commissionEarned Decimal  @default(0) @map("commission_earned") @db.Decimal(12, 2)
+  createdAt        DateTime @default(now()) @map("created_at")
+  referred         User     @relation("ReferredRelation", fields: [referredId], references: [id])
+  referrer         User     @relation("ReferrerRelation", fields: [referrerId], references: [id])
+
+  @@unique([referrerId, referredId])
+  @@map("referrals")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String?  @map("user_id") @db.Uuid
+  action        String
+  entity        String
+  entityId      String?  @map("entity_id")
+  metadata      Json?
+  ip            String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  browser       String?
+  device        String?
+  newValue      String?  @map("new_value")
+  previousValue String?  @map("previous_value")
+  reason        String?
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model CasinoCategory {
+  id        String       @id @default(uuid()) @db.Uuid
+  name      String       @unique
+  slug      String       @unique
+  icon      String?
+  active    Boolean      @default(true)
+  sortOrder Int          @default(0) @map("sort_order")
+  createdAt DateTime     @default(now()) @map("created_at")
+  games     CasinoGame[]
+
+  @@map("casino_categories")
+}
+
+model CasinoProvider {
+  id        String       @id @default(uuid()) @db.Uuid
+  name      String       @unique
+  slug      String       @unique
+  logo      String?
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now()) @map("created_at")
+  games     CasinoGame[]
+
+  @@map("casino_providers")
+}
+
+model CasinoGame {
+  id          String          @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String          @unique
+  description String?
+  image       String?
+  providerId  String          @map("provider_id") @db.Uuid
+  categoryId  String          @map("category_id") @db.Uuid
+  rtp         Decimal?        @db.Decimal(5, 2)
+  minBet      Decimal?        @default(1) @map("min_bet") @db.Decimal(12, 2)
+  maxBet      Decimal?        @default(10000) @map("max_bet") @db.Decimal(12, 2)
+  active      Boolean         @default(true)
+  featured    Boolean         @default(false)
+  popular     Boolean         @default(false)
+  sortOrder   Int             @default(0) @map("sort_order")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  category    CasinoCategory  @relation(fields: [categoryId], references: [id])
+  provider    CasinoProvider  @relation(fields: [providerId], references: [id])
+  sessions    CasinoSession[]
+
+  @@map("casino_games")
+}
+
+model CasinoPromotion {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  image       String?
+  link        String?
+  badge       String?
+  active      Boolean   @default(true)
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("casino_promotions")
+}
+
+model CasinoSession {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  gameId    String     @map("game_id") @db.Uuid
+  gameSlug  String     @map("game_slug")
+  betAmount Decimal    @map("bet_amount") @db.Decimal(12, 2)
+  winAmount Decimal    @default(0) @map("win_amount") @db.Decimal(12, 2)
+  status    String     @default("PLAYING")
+  result    Json?
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  game      CasinoGame @relation(fields: [gameId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("casino_sessions")
+}
+
+model UserHierarchy {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  userId              String                  @unique @map("user_id") @db.Uuid
+  parentId            String?                 @map("parent_id") @db.Uuid
+  level               HierarchyLevel          @default(LEVEL_4_PLAYER)
+  commissionRate      Decimal?                @default(0) @map("commission_rate") @db.Decimal(5, 2)
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+  creditLimit         Decimal?                @map("credit_limit") @db.Decimal(12, 2)
+  exposureLimit       Decimal?                @map("exposure_limit") @db.Decimal(12, 2)
+  maxPlayerCount      Int?                    @map("max_player_count")
+  commissionsReceived CommissionTransaction[]
+  parent              UserHierarchy?          @relation("HierarchyTree", fields: [parentId], references: [id])
+  children            UserHierarchy[]         @relation("HierarchyTree")
+  user                User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_hierarchy")
+}
+
+model Commission {
+  id         String         @id @default(uuid()) @db.Uuid
+  fromUserId String         @map("from_user_id") @db.Uuid
+  toUserId   String         @map("to_user_id") @db.Uuid
+  betId      String?        @map("bet_id") @db.Uuid
+  type       CommissionType @default(BET_PLACED)
+  amount     Decimal        @db.Decimal(12, 2)
+  rate       Decimal        @db.Decimal(5, 2)
+  createdAt  DateTime       @default(now()) @map("created_at")
+  bet        Bet?           @relation(fields: [betId], references: [id])
+  fromUser   User           @relation("CommissionFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User           @relation("CommissionTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@map("commissions")
+}
+
+model CommissionTransaction {
+  id          String         @id @default(uuid()) @db.Uuid
+  receiverId  String         @map("receiver_id") @db.Uuid
+  sourceBetId String?        @map("source_bet_id") @db.Uuid
+  amount      Decimal        @db.Decimal(12, 2)
+  rate        Decimal        @db.Decimal(5, 2)
+  level       HierarchyLevel
+  createdAt   DateTime       @default(now()) @map("created_at")
+  receiver    UserHierarchy  @relation(fields: [receiverId], references: [id], onDelete: Cascade)
+  sourceBet   Bet?           @relation(fields: [sourceBetId], references: [id])
+
+  @@map("commission_transactions")
+}
+
+enum UserRole {
+  USER
+  AGENT
+  MASTER_ID
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum SuspensionReason {
+  FRAUD
+  BONUS_ABUSE
+  SUSPICIOUS_BETTING
+  MULTI_ACCOUNT
+  MANUAL
+  OTHER
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  BET_PLACED
+  BET_WON
+  BET_LOST
+  BET_CASHED_OUT
+  REFERRAL_BONUS
+  ADMIN_ADJUST
+  TRANSFER_IN
+  TRANSFER_OUT
+  COMMISSION
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum BetType {
+  SINGLE
+  MULTI
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  CANCELLED
+  CASHED_OUT
+}
+
+enum BetLegStatus {
+  PENDING
+  WON
+  LOST
+  VOID
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  CANCELLED
+  POSTPONED
+}
+
+enum MarketType {
+  MATCH_ODDS
+  WIN_DRAW_WIN
+  BOOKMAKER
+  SESSION
+  FANCY
+  PLAYER_RUNS
+  PLAYER_BOUNDARIES
+  FALL_OF_WICKET
+  TOTAL_RUNS
+  OVER_RUNS
+  YES_NO
+  OVER_UNDER
+  BOTH_TEAMS_SCORE
+  HANDICAP
+  CORRECT_SCORE
+  TOP_BATSMAN
+  TOP_BOWLER
+}
+
+enum MarketStatus {
+  OPEN
+  SUSPENDED
+  SETTLED
+}
+
+enum OddsType {
+  BACK
+  LAY
+}
+
+enum NotificationType {
+  BET_SETTLED
+  DEPOSIT
+  WITHDRAWAL
+  PROMOTION
+  SYSTEM
+}
+
+enum CommissionType {
+  BET_PLACED
+  BET_WON
+  REFERRAL
+}
+
+enum HierarchyLevel {
+  LEVEL_1_ADMIN
+  LEVEL_2_MASTER
+  LEVEL_3_AGENT
+  LEVEL_4_PLAYER
+}

@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 4%;
+    --foreground: 0 0% 95%;
+    --card: 222 30% 8%;
+    --card-foreground: 0 0% 95%;
+    --popover: 222 30% 8%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 186 100% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 25% 12%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 222 20% 14%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 186 100% 42%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 186 100% 42%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-slate-700/50;
+  }
+  body {
+    @apply text-slate-100 antialiased;
+    background: #0B1220;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2;
+  }
+  .btn-primary {
+    @apply btn bg-[#00D4FF] text-black hover:bg-[#00D4FF]/90 hover:shadow-lg hover:shadow-[#00D4FF]/25 active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply btn bg-[#172033] text-slate-200 hover:bg-[#172033]/80;
+  }
+  .btn-accent {
+    @apply btn bg-green-600 text-white hover:bg-green-500 active:scale-[0.98];
+  }
+  .btn-outline {
+    @apply btn border border-slate-600 bg-transparent text-slate-300 hover:bg-[#172033] hover:text-white;
+  }
+  .card {
+    @apply rounded-xl border border-slate-700/40 bg-[#111827]/80 text-slate-100 p-5 backdrop-blur-sm;
+  }
+  .card-hover {
+    @apply card transition-all duration-300 hover:border-[#00D4FF]/30 hover:shadow-lg hover:shadow-[#00D4FF]/5 hover:-translate-y-0.5;
+  }
+  .input {
+    @apply flex h-10 w-full rounded-lg border border-slate-600 bg-[#172033]/50 px-3 py-2 text-sm text-white placeholder-slate-500 file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4FF] focus-visible:border-[#00D4FF] transition-all;
+  }
+  .glass {
+    @apply bg-[#0B1220]/80 backdrop-blur-xl border border-slate-700/30;
+  }
+  .glass-card {
+    @apply bg-[#111827]/60 backdrop-blur-md border border-slate-700/30;
+  }
+  .glow {
+    @apply relative overflow-hidden;
+  }
+  .glow::before {
+    content: '';
+    @apply absolute -inset-[1px] rounded-xl bg-gradient-to-r from-[#00D4FF]/20 via-[#00D4FF]/10 to-[#00D4FF]/20 opacity-0 transition-opacity duration-300;
+    z-index: -1;
+  }
+  .glow:hover::before {
+    @apply opacity-100;
+  }
+  .odds-btn {
+    @apply flex flex-col items-center rounded-lg bg-[#172033] px-3 py-2 transition-all duration-200 hover:bg-[#00D4FF]/10 hover:border-[#00D4FF]/30 border border-transparent active:scale-95 cursor-pointer min-w-[70px];
+  }
+  .odds-btn.active {
+    @apply bg-[#00D4FF]/10 border-[#00D4FF]/30;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-[#172033];
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-[#00D4FF] to-cyan-300 bg-clip-text text-transparent;
+  }
+  .glow-border {
+    @apply relative;
+  }
+  .glow-border::after {
+    content: '';
+    @apply absolute inset-0 rounded-xl border border-[#00D4FF]/0 transition-all duration-300 pointer-events-none;
+  }
+  .glow-border:hover::after {
+    @apply border-[#00D4FF]/30 shadow-[0_0_15px_rgba(0,212,255,0.1)];
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.3);
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.5);
+  }
+}

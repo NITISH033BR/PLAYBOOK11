@@ -1,0 +1,34 @@
+export const MATCH_STATUS = {
+  SCHEDULED: "SCHEDULED",
+  LIVE: "LIVE",
+  FINISHED: "FINISHED",
+  CANCELLED: "CANCELLED",
+  POSTPONED: "POSTPONED",
+} as const;
+
+export const BET_STATUS = {
+  PENDING: "PENDING",
+  WON: "WON",
+  LOST: "LOST",
+  CANCELLED: "CANCELLED",
+  CASHED_OUT: "CASHED_OUT",
+} as const;
+
+export const TRANSACTION_STATUS = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+  CANCELLED: "CANCELLED",
+} as const;
+
+export const USER_STATUS = {
+  ACTIVE: "ACTIVE",
+  SUSPENDED: "SUSPENDED",
+  DELETED: "DELETED",
+} as const;
+
+export const MARKET_STATUS = {
+  OPEN: "OPEN",
+  SUSPENDED: "SUSPENDED",
+  SETTLED: "SETTLED",
+} as const;
