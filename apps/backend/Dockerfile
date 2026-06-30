@@ -13,7 +13,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared ./packages/shared
 COPY apps/backend/package.json ./
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
