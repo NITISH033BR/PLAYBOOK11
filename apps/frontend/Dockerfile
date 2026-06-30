@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/frontend/scripts ./apps/frontend/scripts
 RUN npm ci
 COPY packages/shared/ ./packages/shared/
 COPY apps/frontend/ ./apps/frontend/
