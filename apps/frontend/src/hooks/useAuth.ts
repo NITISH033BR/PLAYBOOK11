@@ -28,7 +28,13 @@ export function useLogin() {
       router.push(redirect);
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.message || "Login failed");
+      console.error("Login API Error:", err.response?.data || err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Login failed";
+      toast.error(message);
     },
   });
 }
