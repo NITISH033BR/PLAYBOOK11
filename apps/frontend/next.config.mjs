@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig = {
+  output: "standalone",
   generateEtags: false,
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,
