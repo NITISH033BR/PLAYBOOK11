@@ -6,7 +6,7 @@ COPY apps/backend/package.json ./apps/backend/
 RUN npm ci
 COPY packages/shared/ ./packages/shared/
 COPY apps/backend/ ./apps/backend/
-RUN npm run build:shared && npm run build -w apps/backend
+RUN npx prisma generate --schema=./apps/backend/src/prisma/schema.prisma && npm run build:shared && npm run build -w apps/backend
 
 FROM node:20-alpine AS runner
 WORKDIR /app
