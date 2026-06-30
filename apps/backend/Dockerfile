@@ -1,4 +1,5 @@
 FROM node:20-alpine AS builder
+RUN apk add --no-cache openssl
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY packages/shared/package.json ./packages/shared/
@@ -9,6 +10,7 @@ COPY apps/backend/ ./apps/backend/
 RUN npx prisma generate --schema=./apps/backend/src/prisma/schema.prisma && npm run build:shared && npm run build -w apps/backend
 
 FROM node:20-alpine AS runner
+RUN apk add --no-cache openssl
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/apps/backend/dist ./dist
