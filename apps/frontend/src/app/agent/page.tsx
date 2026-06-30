@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { hierarchyApi, walletApi } from "@/lib/api";
-import { useAuthStore } from "@/store/authStore";
+import { hierarchyApi, walletApi } from "../../lib/api";
+import { useAuthStore } from "../../store/authStore";
 import { useRouter } from "next/navigation";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "../../lib/utils";
 import toast from "react-hot-toast";
 
 export default function AgentPage() {

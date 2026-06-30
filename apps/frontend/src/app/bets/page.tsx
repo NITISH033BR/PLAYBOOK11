@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useBets, useActiveBets } from "@/hooks/useBets";
-import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
+import { useBets, useActiveBets } from "../../hooks/useBets";
+import { formatCurrency, formatDate, getStatusColor } from "../../lib/utils";
 
 export default function BetsPage() {
   const [tab, setTab] = useState<"active" | "history">("active");
