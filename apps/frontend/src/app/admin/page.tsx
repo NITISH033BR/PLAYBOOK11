@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '../../store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import AdminDashboard from '@/components/admin/AdminDashboard';
-import AdminUsers from '@/components/admin/AdminUsers';
-import AdminAuditLogs from '@/components/admin/AdminAuditLogs';
-import AdminReports from '@/components/admin/AdminReports';
-import AdminHierarchy from '@/components/admin/AdminHierarchy';
-import AdminMasters from '@/components/admin/AdminMasters';
+import AdminDashboard from '../../components/admin/AdminDashboard';
+import AdminUsers from '../../components/admin/AdminUsers';
+import AdminAuditLogs from '../../components/admin/AdminAuditLogs';
+import AdminReports from '../../components/admin/AdminReports';
+import AdminHierarchy from '../../components/admin/AdminHierarchy';
+import AdminMasters from '../../components/admin/AdminMasters';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
