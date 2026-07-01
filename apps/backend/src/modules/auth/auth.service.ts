@@ -121,15 +121,21 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, ip?: string) {
+    this.logger.log(`STEP 1: finding user by email: ${dto.email}`);
     let user;
     try {
       user = await this.prisma.user.findUnique({
         where: { email: dto.email },
       });
     } catch (error: any) {
-      this.logger.error(`Database error during login lookup for ${dto.email}: ${error.message}`, error.stack);
+      this.logger.error(`STEP 1 FAILED: findUnique error: ${error.message}`);
+      this.logger.error(`error.stack: ${error.stack}`);
+      if (error.code) this.logger.error(`error.code: ${error.code}`);
+      if (error.meta) this.logger.error(`error.meta: ${JSON.stringify(error.meta)}`);
+      this.logger.error(`error.constructor.name: ${error.constructor?.name}`);
       throw new UnauthorizedException("Invalid email or password");
     }
+    this.logger.log(`STEP 1: findUnique returned: ${user ? user.email : 'NOT FOUND'}`);
 
     if (!user) {
       throw new UnauthorizedException("Invalid email or password");
@@ -142,31 +148,45 @@ export class AuthService {
       throw new UnauthorizedException("Account not found");
     }
 
+    this.logger.log(`STEP 2: verifying password for: ${dto.email}`);
     const isValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isValid) {
       throw new UnauthorizedException("Invalid email or password");
     }
+    this.logger.log(`STEP 2: password verified`);
 
+    this.logger.log(`STEP 3: updating last login for user: ${user.id}`);
     try {
       await this.prisma.user.update({
         where: { id: user.id },
         data: { lastLoginAt: new Date(), lastLoginIp: ip },
       });
     } catch (error: any) {
-      this.logger.error(`Database error during login update for ${dto.email}: ${error.message}`, error.stack);
+      this.logger.error(`STEP 3 FAILED: update lastLogin error: ${error.message}`);
+      this.logger.error(`error.stack: ${error.stack}`);
+      if (error.code) this.logger.error(`error.code: ${error.code}`);
+      if (error.meta) this.logger.error(`error.meta: ${JSON.stringify(error.meta)}`);
     }
+    this.logger.log(`STEP 3: last login updated`);
 
+    this.logger.log(`STEP 4: creating audit log for user: ${user.id}`);
     try {
       await this.prisma.auditLog.create({
         data: { userId: user.id, action: 'LOGIN', entity: 'USER', entityId: user.id, ip },
       });
     } catch (error: any) {
-      this.logger.error(`Database error during audit log creation for ${dto.email}: ${error.message}`, error.stack);
+      this.logger.error(`STEP 4 FAILED: auditLog create error: ${error.message}`);
+      this.logger.error(`error.stack: ${error.stack}`);
+      if (error.code) this.logger.error(`error.code: ${error.code}`);
+      if (error.meta) this.logger.error(`error.meta: ${JSON.stringify(error.meta)}`);
     }
+    this.logger.log(`STEP 4: audit log created`);
 
+    this.logger.log(`STEP 5: generating tokens for user: ${user.id}`);
     const tokens = await this.generateTokens(user.id, user.email, user.role);
+    this.logger.log(`STEP 5: tokens generated`);
 
-    this.logger.log(`User logged in: ${user.email}`);
+    this.logger.log(`STEP 6: returning response for: ${user.email}`);
 
     return {
       ...tokens,
@@ -258,6 +278,7 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
+    this.logger.log(`generateTokens STEP 1: saving refresh token for user: ${userId}`);
     try {
       await this.prisma.refreshToken.create({
         data: {
@@ -267,8 +288,12 @@ export class AuthService {
         },
       });
     } catch (error: any) {
-      this.logger.error(`Database error during refresh token creation for user ${userId}: ${error.message}`, error.stack);
+      this.logger.error(`generateTokens STEP 1 FAILED: refreshToken create error: ${error.message}`);
+      this.logger.error(`error.stack: ${error.stack}`);
+      if (error.code) this.logger.error(`error.code: ${error.code}`);
+      if (error.meta) this.logger.error(`error.meta: ${JSON.stringify(error.meta)}`);
     }
+    this.logger.log(`generateTokens STEP 1: refresh token saved`);
 
     return { accessToken, refreshToken };
   }

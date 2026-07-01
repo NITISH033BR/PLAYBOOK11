@@ -29,6 +29,20 @@ async function validateEnvironment(logger: Logger) {
     }
   }
 
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    if (dbUrl.includes("sslmode=require")) {
+      logger.log("DATABASE_URL: sslmode=require is set (correct for Neon)");
+    } else {
+      logger.warn("DATABASE_URL: sslmode=require is MISSING (Neon requires SSL). Add ?sslmode=require");
+    }
+    if (dbUrl.includes("pgbouncer=true")) {
+      logger.log("DATABASE_URL: pgbouncer=true is set (correct for Neon pooler)");
+    } else {
+      logger.warn("DATABASE_URL: pgbouncer=true is MISSING (recommended for Neon pooler). Add &pgbouncer=true");
+    }
+  }
+
   if (hasErrors) {
     logger.warn("Server will start but may fail at runtime due to missing environment variables");
   }
