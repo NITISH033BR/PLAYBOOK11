@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { useSports, useMatches } from "@/hooks/useSports";
 import { formatDate } from "@/lib/utils";
 import { PromotionCard } from "@/components/sports";
@@ -30,6 +31,14 @@ export default function SportsPage() {
     if (m.status === "LIVE") sportCounts[slug].live++;
     else if (m.status === "SCHEDULED") sportCounts[slug].upcoming++;
   }
+
+  // DEBUG: Remove after verifying production API works
+  useEffect(() => {
+    console.log("[DEBUG] BACKEND_URL:", process.env.BACKEND_URL || "NOT SET (defaults to localhost:4000)");
+    console.log("[DEBUG] NEXT_PUBLIC_WS_URL:", process.env.NEXT_PUBLIC_WS_URL || "NOT SET");
+    console.log("[DEBUG] Sports response:", sportsData);
+    console.log("[DEBUG] Matches response:", matchesData);
+  }, [sportsData, matchesData]);
 
   const addToSlip = (odds: any, matchId: string, matchName: string, marketId: string, marketName: string) => {
     if (!odds?.id) return;

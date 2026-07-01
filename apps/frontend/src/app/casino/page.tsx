@@ -101,6 +101,15 @@ export default function CasinoPage() {
 
   const showHome = !activeCategory && !searchTerm;
 
+  // DEBUG: Remove after verifying production API works
+  useEffect(() => {
+    console.log("[DEBUG] BACKEND_URL:", process.env.BACKEND_URL || "NOT SET (defaults to localhost:4000)");
+    console.log("[DEBUG] NEXT_PUBLIC_WS_URL:", process.env.NEXT_PUBLIC_WS_URL || "NOT SET");
+    console.log("[DEBUG] Casino categories:", categories);
+    console.log("[DEBUG] Casino games:", gamesData);
+    console.log("[DEBUG] Casino featured:", featuredData);
+  }, [categories, gamesData, featuredData]);
+
   return (
     <motion.div className="mx-auto max-w-7xl" initial="initial" animate="animate" variants={stagger}>
       {/* Hero Banner */}
