@@ -12,7 +12,9 @@ import { LiveService } from "./live.service";
 @WebSocketGateway({
   namespace: "/live",
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: process.env.NODE_ENV === "production"
+      ? process.env.FRONTEND_URL || "https://playbook11.online"
+      : ["http://localhost:3000", "http://localhost:3001"],
     credentials: true,
   },
 })
