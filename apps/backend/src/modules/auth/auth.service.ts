@@ -149,7 +149,13 @@ export class AuthService {
     }
 
     this.logger.log(`STEP 2: verifying password for: ${dto.email}`);
-    const isValid = await bcrypt.compare(dto.password, user.passwordHash);
+    let isValid: boolean;
+    try {
+      isValid = await bcrypt.compare(dto.password, user.passwordHash);
+    } catch (error: any) {
+      this.logger.error(`STEP 2 FAILED: bcrypt.compare error: ${error.message}`);
+      throw new UnauthorizedException("Invalid email or password");
+    }
     if (!isValid) {
       throw new UnauthorizedException("Invalid email or password");
     }
@@ -183,7 +189,14 @@ export class AuthService {
     this.logger.log(`STEP 4: audit log created`);
 
     this.logger.log(`STEP 5: generating tokens for user: ${user.id}`);
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    let tokens: { accessToken: string; refreshToken: string };
+    try {
+      tokens = await this.generateTokens(user.id, user.email, user.role);
+    } catch (error: any) {
+      this.logger.error(`STEP 5 FAILED: generateTokens error: ${error.message}`);
+      this.logger.error(`error.stack: ${error.stack}`);
+      throw new UnauthorizedException("Login failed - token generation error");
+    }
     this.logger.log(`STEP 5: tokens generated`);
 
     this.logger.log(`STEP 6: returning response for: ${user.email}`);
