@@ -13,11 +13,13 @@ async function bootstrap() {
   app.setGlobalPrefix("api/v1", { exclude: ["/"] });
 
   app.enableCors({
-    origin: process.env.NODE_ENV === "production"
-      ? process.env.FRONTEND_URL || "https://playbook11.online"
-      : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+    origin: [
+      "https://playbook11.online",
+      "http://localhost:3000",
+    ],
     credentials: true,
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   const httpAdapter = app.getHttpAdapter();
