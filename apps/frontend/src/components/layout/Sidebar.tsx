@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUIStore } from "@/store/uiStore";
@@ -25,17 +26,28 @@ const casinoItems = [
   { label: "Poker", href: "/casino?category=poker", icon: "♠️" },
 ];
 
-const generalItems = [
-  { label: "Matches", href: "/matches", icon: "📺" },
-  { label: "Live Odds", href: "/odds", icon: "📊" },
-  { label: "Bet Slip", href: "#betslip", icon: "🎫" },
-  { label: "Leaderboard", href: "/leaderboard", icon: "🏆" },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, openBetSlip } = useUIStore();
   const { user, isAuthenticated } = useAuthStore();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isMobile, sidebarOpen]);
 
   const isActive = (href: string) => {
     const hrefPath = href.includes('?') ? href.substring(0, href.indexOf('?')) : href;
@@ -61,7 +73,7 @@ export function Sidebar() {
         openBetSlip();
         return;
       }
-      if (window.innerWidth < 1024) toggleSidebar();
+      if (isMobile) toggleSidebar();
     };
 
     return (
@@ -78,13 +90,13 @@ export function Sidebar() {
             isActive(item.href)
               ? "bg-[#00D4FF]/10 text-[#00D4FF] border-l-[3px] border-[#00D4FF]"
               : "text-slate-400 hover:text-white hover:bg-[#172033]/80 border-l-[3px] border-transparent",
-            !sidebarOpen && "justify-center px-2 lg:justify-center",
+            !sidebarOpen && !isMobile && "justify-center px-2",
           )}
-          title={!sidebarOpen ? item.label : undefined}
+          title={!sidebarOpen && !isMobile ? item.label : undefined}
         >
           <span className="text-lg shrink-0">{item.icon}</span>
           <AnimatePresence>
-            {sidebarOpen && (
+            {(sidebarOpen || isMobile) && (
               <motion.span
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: "auto" }}
@@ -102,7 +114,7 @@ export function Sidebar() {
 
   const NavSection = ({ title, items, icon }: { title: string; items: { label: string; href: string; icon: string }[]; icon?: string }) => (
     <div className="mb-4">
-      {sidebarOpen && (
+      {(sidebarOpen || isMobile) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -119,27 +131,28 @@ export function Sidebar() {
 
   return (
     <>
-      {sidebarOpen && (
+      {sidebarOpen && isMobile && (
         <div
-          className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm"
           onClick={toggleSidebar}
         />
       )}
 
       <motion.aside
-        animate={{ width: sidebarOpen ? 240 : 64 }}
+        animate={isMobile ? { x: sidebarOpen ? 0 : -288 } : { width: sidebarOpen ? 240 : 64 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
           "flex h-screen flex-col border-r border-slate-700/30 bg-[#0B1220]/95 backdrop-blur-xl shrink-0 overflow-hidden",
-          "fixed lg:relative z-40",
+          "fixed z-40",
+          isMobile ? "w-72" : "lg:relative",
         )}
       >
         {/* Logo */}
         <div className={cn(
           "flex h-16 items-center border-b border-slate-700/30 shrink-0",
-          sidebarOpen ? "px-4 justify-between" : "justify-center px-2",
+          (!sidebarOpen && !isMobile) ? "justify-center px-2" : "px-4 justify-between",
         )}>
-          {sidebarOpen ? (
+          {sidebarOpen || isMobile ? (
             <>
               <Link href="/" className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#00D4FF] to-cyan-600 shadow-lg shadow-[#00D4FF]/20">
@@ -201,8 +214,6 @@ export function Sidebar() {
             ]} />
           )}
         </div>
-
-
       </motion.aside>
     </>
   );

@@ -86,36 +86,38 @@ export default function HomePage() {
     <motion.div className="mx-auto max-w-7xl" initial="initial" animate="animate" variants={stagger}>
       {/* HERO BANNER */}
       <motion.section variants={fadeUp} className="mb-8">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1220] via-[#111827] to-[#0B1220] p-8 md:p-12 border border-[#00D4FF]/10">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1220] via-[#111827] to-[#0B1220] p-6 md:p-8 lg:p-12 border border-[#00D4FF]/10">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#00D4FF]/15 via-transparent to-transparent" />
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#00D4FF]/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-400/5 rounded-full blur-3xl" />
           <div className="relative z-10">
-            <motion.h1 className="text-4xl md:text-6xl font-black tracking-tight" variants={fadeUp}>
+            <motion.h1 className="text-2xl sm:text-4xl md:text-6xl font-black tracking-tight" variants={fadeUp}>
               <span className="text-white">Welcome Back</span>
               {isAuthenticated && (
                 <span className="bg-gradient-to-r from-[#00D4FF] to-cyan-300 bg-clip-text text-transparent">, {user?.displayName || user?.username}</span>
               )}
             </motion.h1>
-            <motion.p className="mt-3 text-lg text-slate-400 max-w-xl" variants={fadeUp}>
+            <motion.p className="mt-2 text-sm sm:text-lg text-slate-400 max-w-xl" variants={fadeUp}>
               Premium sportsbook & casino experience
             </motion.p>
-            <motion.div className="mt-8 flex flex-wrap gap-3" variants={fadeUp}>
-              <Link href="/wallet" className="inline-flex items-center gap-2 rounded-xl bg-[#00D4FF] px-6 py-3 font-semibold text-black hover:bg-[#00D4FF]/90 transition-all shadow-lg shadow-[#00D4FF]/25 active:scale-[0.98]">
+            <motion.div className="mt-6 md:mt-8 flex flex-wrap gap-2 sm:gap-3" variants={fadeUp}>
+              <Link href="/wallet" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#00D4FF] px-5 sm:px-6 py-3 font-semibold text-black hover:bg-[#00D4FF]/90 transition-all shadow-lg shadow-[#00D4FF]/25 active:scale-[0.98] flex-1 sm:flex-none">
                 <span>💰</span>
-                Deposit Funds
+                <span className="hidden xs:inline">Deposit Funds</span>
+                <span className="xs:hidden">Deposit</span>
               </Link>
-              <Link href="/wallet?tab=withdraw" className="inline-flex items-center gap-2 rounded-xl border border-slate-600 px-6 py-3 font-semibold text-slate-300 hover:bg-[#172033] hover:text-white transition-all active:scale-[0.98]">
+              <Link href="/wallet?tab=withdraw" className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-600 px-5 sm:px-6 py-3 font-semibold text-slate-300 hover:bg-[#172033] hover:text-white transition-all active:scale-[0.98] flex-1 sm:flex-none">
                 <span>💸</span>
-                Withdraw
+                <span className="hidden xs:inline">Withdraw</span>
+                <span className="xs:hidden">Withdraw</span>
               </Link>
-              <Link href="/matches" className="inline-flex items-center gap-2 rounded-xl bg-[#172033]/80 px-6 py-3 font-semibold text-white hover:bg-[#172033] transition-all active:scale-[0.98]">
+              <Link href="/matches" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#172033]/80 px-5 sm:px-6 py-3 font-semibold text-white hover:bg-[#172033] transition-all active:scale-[0.98] flex-1 sm:flex-none">
                 <span>📺</span>
                 View Matches
               </Link>
-              <button onClick={openBetSlip} className="inline-flex items-center gap-2 rounded-xl border border-[#00D4FF]/20 px-6 py-3 font-semibold text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-all active:scale-[0.98]">
+              <button onClick={openBetSlip} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#00D4FF]/20 px-5 sm:px-6 py-3 font-semibold text-[#00D4FF] hover:bg-[#00D4FF]/10 transition-all active:scale-[0.98] flex-1 sm:flex-none">
                 <span>🎫</span>
-                Open Bet Slip
+                Bet Slip
               </button>
             </motion.div>
           </div>

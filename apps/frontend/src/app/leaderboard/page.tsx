@@ -49,6 +49,7 @@ export default function LeaderboardPage() {
         {isLoading ? (
           <div className="animate-pulse text-[#6b7280]">Loading leaderboard...</div>
         ) : entries.length > 0 ? (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-700/50 text-left text-[#6b7280]">
@@ -82,6 +83,7 @@ export default function LeaderboardPage() {
               ))}
             </tbody>
           </table>
+          </div>
         ) : (
           <div className="text-center text-[#6b7280]">No data available yet</div>
         )}

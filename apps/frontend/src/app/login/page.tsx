@@ -31,7 +31,7 @@ export default function LoginPage() {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-md px-4"
     >
-      <div className="rounded-2xl border border-slate-700/50 bg-slate-800/60 p-8 backdrop-blur-xl shadow-2xl">
+      <div className="rounded-2xl border border-slate-700/50 bg-slate-800/60 p-6 md:p-8 backdrop-blur-xl shadow-2xl">
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-700 shadow-lg shadow-cyan-500/25">
             <span className="text-2xl font-black text-white">P</span>

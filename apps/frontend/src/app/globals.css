@@ -32,7 +32,7 @@
     @apply border-slate-700/50;
   }
   body {
-    @apply text-slate-100 antialiased;
+    @apply text-slate-100 antialiased overflow-x-hidden;
     background: #0B1220;
     font-feature-settings: "rlig" 1, "calt" 1;
   }

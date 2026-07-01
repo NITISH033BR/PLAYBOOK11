@@ -75,18 +75,18 @@ export function Header() {
         </form>
 
         {/* Right */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {isAuthenticated ? (
             <>
               {/* Wallet */}
               <div className="relative">
                 <button
                   onClick={() => setShowWalletDropdown(!showWalletDropdown)}
-                  className="flex items-center gap-1.5 rounded-lg bg-[#172033]/80 border border-slate-600/50 px-3 py-1.5 text-sm hover:bg-[#172033] transition-all"
+                  className="flex items-center gap-1 rounded-lg bg-[#172033]/80 border border-slate-600/50 px-2 sm:px-3 py-1.5 text-sm hover:bg-[#172033] transition-all"
                 >
                   <span className="text-amber-400">💰</span>
-                  <span className="font-bold text-white tabular-nums text-sm">${formatCurrency(availableBalance)}</span>
-                  <svg className={cn("h-3 w-3 text-slate-500 transition-transform", showWalletDropdown && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="font-bold text-white tabular-nums text-sm truncate max-w-[90px] sm:max-w-none">${formatCurrency(availableBalance)}</span>
+                  <svg className={cn("hidden sm:block h-3 w-3 text-slate-500 transition-transform", showWalletDropdown && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
