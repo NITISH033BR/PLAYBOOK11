@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Req,
+  Logger,
 } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiOperation } from "@nestjs/swagger";
 import { AuthService } from "./auth.service";
@@ -20,6 +21,8 @@ import { Request } from "express";
 @ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Post("register")
@@ -32,7 +35,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Login with email and password" })
   async login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.authService.login(dto, req.ip);
+    try {
+      return await this.authService.login(dto, req.ip);
+    } catch (error: any) {
+      this.logger.error(`Login failed for ${dto.email}: ${error.message}`, error.stack);
+      throw error;
+    }
   }
 
   @Post("refresh")

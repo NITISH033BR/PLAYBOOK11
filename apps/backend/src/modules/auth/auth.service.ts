@@ -121,9 +121,15 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, ip?: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    let user;
+    try {
+      user = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+    } catch (error: any) {
+      this.logger.error(`Database error during login lookup for ${dto.email}: ${error.message}`, error.stack);
+      throw new UnauthorizedException("Invalid email or password");
+    }
 
     if (!user) {
       throw new UnauthorizedException("Invalid email or password");

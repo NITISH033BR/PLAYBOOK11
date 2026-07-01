@@ -14,9 +14,10 @@ async function bootstrap() {
 
   app.enableCors({
     origin: process.env.NODE_ENV === "production"
-      ? process.env.FRONTEND_URL
+      ? process.env.FRONTEND_URL || "https://playbook11.online"
       : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
     credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   });
 
   const httpAdapter = app.getHttpAdapter();
@@ -49,6 +50,8 @@ async function bootstrap() {
   await app.listen(port);
   logger.log(`Server running on http://localhost:${port}`);
   logger.log(`API docs at http://localhost:${port}/api/docs`);
+  logger.log(`CORS origin: ${process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL || "https://playbook11.online" : "localhost:3000"}`);
+  logger.log(`Database: ${process.env.DATABASE_URL ? "configured" : "MISSING"}`);
 }
 
 bootstrap().catch((err) => {
