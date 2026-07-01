@@ -19,6 +19,11 @@ async function bootstrap() {
     credentials: true,
   });
 
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get("/api/v1/health", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
