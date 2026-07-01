@@ -2,13 +2,43 @@ import { NestFactory } from "@nestjs/core";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
-import { HttpExceptionFilter, AllExceptionsFilter } from "./common/filters/http-exception.filter";
+import {
+  HttpExceptionFilter,
+  AllExceptionsFilter,
+  PrismaExceptionFilter,
+} from "./common/filters/http-exception.filter";
 import { TransformInterceptor } from "./common/interceptors/transform.interceptor";
 import { LoggingInterceptor } from "./common/interceptors/logging.interceptor";
+import { TimeoutInterceptor } from "./common/interceptors/timeout.interceptor";
+import { PrismaService } from "./prisma/prisma.service";
+
+async function validateEnvironment(logger: Logger) {
+  const requiredEnvVars = [
+    { name: "DATABASE_URL", desc: "PostgreSQL connection string" },
+    { name: "JWT_SECRET", desc: "JWT signing secret" },
+    { name: "JWT_REFRESH_SECRET", desc: "JWT refresh token secret" },
+  ];
+
+  let hasErrors = false;
+  for (const env of requiredEnvVars) {
+    if (!process.env[env.name]) {
+      logger.error(`MISSING ENV: ${env.name} (${env.desc})`);
+      hasErrors = true;
+    } else {
+      logger.log(`ENV OK: ${env.name}`);
+    }
+  }
+
+  if (hasErrors) {
+    logger.warn("Server will start but may fail at runtime due to missing environment variables");
+  }
+}
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
   const app = await NestFactory.create(AppModule);
+
+  await validateEnvironment(logger);
 
   app.setGlobalPrefix("api/v1", { exclude: ["/"] });
 
@@ -23,8 +53,20 @@ async function bootstrap() {
   });
 
   const httpAdapter = app.getHttpAdapter();
-  httpAdapter.get("/api/v1/health", (req, res) => {
-    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  httpAdapter.get("/api/v1/health", async (req, res) => {
+    let dbStatus = "unknown";
+    try {
+      const prisma = app.get(PrismaService);
+      await prisma.$queryRaw`SELECT 1`;
+      dbStatus = "connected";
+    } catch {
+      dbStatus = "disconnected";
+    }
+    res.status(200).json({
+      status: "ok",
+      database: dbStatus,
+      timestamp: new Date().toISOString(),
+    });
   });
 
   app.useGlobalPipes(
@@ -35,8 +77,17 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
-  app.useGlobalInterceptors(new TransformInterceptor(), new LoggingInterceptor());
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new PrismaExceptionFilter(),
+    new AllExceptionsFilter(),
+  );
+
+  app.useGlobalInterceptors(
+    new TimeoutInterceptor(),
+    new TransformInterceptor(),
+    new LoggingInterceptor(),
+  );
 
   const config = new DocumentBuilder()
     .setTitle("IPL Betting API")
@@ -49,10 +100,13 @@ async function bootstrap() {
   SwaggerModule.setup("api/docs", app, document);
 
   const port = process.env.PORT || 4000;
-  await app.listen(port);
-  logger.log(`Server running on http://localhost:${port}`);
-  logger.log(`API docs at http://localhost:${port}/api/docs`);
-  logger.log(`CORS origin: ${process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL || "https://playbook11.online" : "localhost:3000"}`);
+  const host = process.env.HOST || "0.0.0.0";
+  await app.listen(port, host);
+  logger.log(`Server running on http://${host}:${port}`);
+  logger.log(`API docs at http://${host}:${port}/api/docs`);
+  logger.log(
+    `CORS origin: ${process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL || "https://playbook11.online" : "localhost:3000"}`,
+  );
   logger.log(`Database: ${process.env.DATABASE_URL ? "configured" : "MISSING"}`);
 }
 

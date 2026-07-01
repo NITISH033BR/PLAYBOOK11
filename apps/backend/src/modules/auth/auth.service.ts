@@ -147,14 +147,22 @@ export class AuthService {
       throw new UnauthorizedException("Invalid email or password");
     }
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date(), lastLoginIp: ip },
-    });
+    try {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date(), lastLoginIp: ip },
+      });
+    } catch (error: any) {
+      this.logger.error(`Database error during login update for ${dto.email}: ${error.message}`, error.stack);
+    }
 
-    await this.prisma.auditLog.create({
-      data: { userId: user.id, action: 'LOGIN', entity: 'USER', entityId: user.id, ip },
-    });
+    try {
+      await this.prisma.auditLog.create({
+        data: { userId: user.id, action: 'LOGIN', entity: 'USER', entityId: user.id, ip },
+      });
+    } catch (error: any) {
+      this.logger.error(`Database error during audit log creation for ${dto.email}: ${error.message}`, error.stack);
+    }
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
@@ -250,13 +258,17 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
-    await this.prisma.refreshToken.create({
-      data: {
-        userId,
-        token: refreshToken,
-        expiresAt,
-      },
-    });
+    try {
+      await this.prisma.refreshToken.create({
+        data: {
+          userId,
+          token: refreshToken,
+          expiresAt,
+        },
+      });
+    } catch (error: any) {
+      this.logger.error(`Database error during refresh token creation for user ${userId}: ${error.message}`, error.stack);
+    }
 
     return { accessToken, refreshToken };
   }
