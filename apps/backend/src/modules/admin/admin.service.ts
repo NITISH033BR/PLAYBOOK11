@@ -29,94 +29,101 @@ export class AdminService {
   }
 
   async getDashboard() {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekStart = new Date(todayStart.getTime() - todayStart.getDay() * 86400000);
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekStart = new Date(todayStart.getTime() - todayStart.getDay() * 86400000);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const [
-      totalUsers, activeUsers, masters, agents, players,
-      totalDeposits, totalWithdrawals,
-      todayDeposits, todayWithdrawals,
-      totalBets, activeBets, casinoBets, sportsBets,
-      liveMatches, pendingWithdrawals, pendingDeposits,
-      revenueToday, revenueThisWeek, revenueThisMonth,
-      totalWalletBalance, commissionPaid,
-    ] = await Promise.all([
-      this.prisma.user.count(),
-      this.prisma.user.count({ where: { status: 'ACTIVE' } }),
-      this.prisma.user.count({ where: { role: 'MASTER_ID', status: { not: 'DELETED' } } }),
-      this.prisma.user.count({ where: { role: 'AGENT', status: { not: 'DELETED' } } }),
-      this.prisma.user.count({ where: { role: 'USER', status: { not: 'DELETED' } } }),
-      this.prisma.transaction.aggregate({
-        where: { type: 'DEPOSIT', status: 'COMPLETED' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { type: 'WITHDRAWAL', status: 'COMPLETED' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { type: 'DEPOSIT', status: 'COMPLETED', createdAt: { gte: todayStart } },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { type: 'WITHDRAWAL', status: 'COMPLETED', createdAt: { gte: todayStart } },
-        _sum: { amount: true },
-      }),
-      this.prisma.bet.count(),
-      this.prisma.bet.count({ where: { status: 'PENDING' } }),
-      this.prisma.bet.count({ where: { type: 'SINGLE' } }),
-      this.prisma.bet.count({ where: { type: 'MULTI' } }),
-      this.prisma.match.count({ where: { status: 'LIVE' } }),
-      this.prisma.transaction.count({ where: { type: 'WITHDRAWAL', status: 'PENDING' } }),
-      this.prisma.transaction.count({ where: { type: 'DEPOSIT', status: 'PENDING' } }),
-      this.getRevenueSince(todayStart),
-      this.getRevenueSince(weekStart),
-      this.getRevenueSince(monthStart),
-      this.prisma.wallet.aggregate({ _sum: { balance: true } }),
-      this.prisma.commission.aggregate({ _sum: { amount: true } }),
-    ]);
+      const [
+        totalUsers, activeUsers, masters, agents, players,
+        totalDeposits, totalWithdrawals,
+        todayDeposits, todayWithdrawals,
+        totalBets, activeBets, casinoBets, sportsBets,
+        liveMatches, pendingWithdrawals, pendingDeposits,
+        revenueToday, revenueThisWeek, revenueThisMonth,
+        totalWalletBalance, commissionPaid,
+      ] = await Promise.all([
+        this.prisma.user.count().catch(() => 0),
+        this.prisma.user.count({ where: { status: 'ACTIVE' } }).catch(() => 0),
+        this.prisma.user.count({ where: { role: 'MASTER_ID', status: { not: 'DELETED' } } }).catch(() => 0),
+        this.prisma.user.count({ where: { role: 'AGENT', status: { not: 'DELETED' } } }).catch(() => 0),
+        this.prisma.user.count({ where: { role: 'USER', status: { not: 'DELETED' } } }).catch(() => 0),
+        this.prisma.transaction.aggregate({
+          where: { type: 'DEPOSIT', status: 'COMPLETED' },
+          _sum: { amount: true },
+        }).catch(() => ({ _sum: { amount: null } })),
+        this.prisma.transaction.aggregate({
+          where: { type: 'WITHDRAWAL', status: 'COMPLETED' },
+          _sum: { amount: true },
+        }).catch(() => ({ _sum: { amount: null } })),
+        this.prisma.transaction.aggregate({
+          where: { type: 'DEPOSIT', status: 'COMPLETED', createdAt: { gte: todayStart } },
+          _sum: { amount: true },
+        }).catch(() => ({ _sum: { amount: null } })),
+        this.prisma.transaction.aggregate({
+          where: { type: 'WITHDRAWAL', status: 'COMPLETED', createdAt: { gte: todayStart } },
+          _sum: { amount: true },
+        }).catch(() => ({ _sum: { amount: null } })),
+        this.prisma.bet.count().catch(() => 0),
+        this.prisma.bet.count({ where: { status: 'PENDING' } }).catch(() => 0),
+        this.prisma.bet.count({ where: { type: 'SINGLE' } }).catch(() => 0),
+        this.prisma.bet.count({ where: { type: 'MULTI' } }).catch(() => 0),
+        this.prisma.match.count({ where: { status: 'LIVE' } }).catch(() => 0),
+        this.prisma.transaction.count({ where: { type: 'WITHDRAWAL', status: 'PENDING' } }).catch(() => 0),
+        this.prisma.transaction.count({ where: { type: 'DEPOSIT', status: 'PENDING' } }).catch(() => 0),
+        this.getRevenueSince(todayStart).catch(() => 0),
+        this.getRevenueSince(weekStart).catch(() => 0),
+        this.getRevenueSince(monthStart).catch(() => 0),
+        this.prisma.wallet.aggregate({ _sum: { balance: true } }).catch(() => ({ _sum: { balance: null } })),
+        this.prisma.commission.aggregate({ _sum: { amount: true } }).catch(() => ({ _sum: { amount: null } })),
+      ]);
 
-    const wonBets = await this.prisma.bet.aggregate({
-      where: { status: 'WON' },
-      _sum: { potentialWin: true },
-    });
-    const lostBets = await this.prisma.bet.aggregate({
-      where: { status: 'LOST' },
-      _sum: { stake: true },
-    });
-    const profitLoss = Number(lostBets._sum.stake || 0) - Number(wonBets._sum.potentialWin || 0);
+      const [wonBets, lostBets, exposure] = await Promise.all([
+        this.prisma.bet.aggregate({
+          where: { status: 'WON' },
+          _sum: { potentialWin: true },
+        }).catch(() => ({ _sum: { potentialWin: null } })),
+        this.prisma.bet.aggregate({
+          where: { status: 'LOST' },
+          _sum: { stake: true },
+        }).catch(() => ({ _sum: { stake: null } })),
+        this.getTotalExposure().catch(() => 0),
+      ]);
 
-    const exposure = await this.getTotalExposure();
+      const profitLoss = Number(lostBets._sum.stake || 0) - Number(wonBets._sum.potentialWin || 0);
 
-    return {
-      totalUsers,
-      activeUsers,
-      onlineUsers: 0,
-      masters,
-      agents,
-      players,
-      totalWalletBalance: Number(totalWalletBalance._sum.balance || 0),
-      totalDeposits: Number(totalDeposits._sum.amount || 0),
-      totalWithdrawals: Number(totalWithdrawals._sum.amount || 0),
-      todayDeposits: Number(todayDeposits._sum.amount || 0),
-      todayWithdrawals: Number(todayWithdrawals._sum.amount || 0),
-      totalBets,
-      activeBets,
-      casinoBets,
-      sportsBets,
-      liveMatches,
-      liveGames: 0,
-      pendingWithdrawals,
-      pendingDeposits,
-      revenueToday: Number(revenueToday),
-      revenueThisWeek: Number(revenueThisWeek),
-      revenueThisMonth: Number(revenueThisMonth),
-      profitLoss,
-      exposure,
-      commissionPaid: Number(commissionPaid._sum.amount || 0),
-    };
+      return {
+        totalUsers,
+        activeUsers,
+        onlineUsers: 0,
+        masters,
+        agents,
+        players,
+        totalWalletBalance: Number(totalWalletBalance._sum.balance || 0),
+        totalDeposits: Number(totalDeposits._sum.amount || 0),
+        totalWithdrawals: Number(totalWithdrawals._sum.amount || 0),
+        todayDeposits: Number(todayDeposits._sum.amount || 0),
+        todayWithdrawals: Number(todayWithdrawals._sum.amount || 0),
+        totalBets,
+        activeBets,
+        casinoBets,
+        sportsBets,
+        liveMatches,
+        liveGames: 0,
+        pendingWithdrawals,
+        pendingDeposits,
+        revenueToday: Number(revenueToday),
+        revenueThisWeek: Number(revenueThisWeek),
+        revenueThisMonth: Number(revenueThisMonth),
+        profitLoss,
+        exposure,
+        commissionPaid: Number(commissionPaid._sum.amount || 0),
+      };
+    } catch (error) {
+      this.logger.error('Failed to load dashboard data', error instanceof Error ? error.stack : error);
+      throw error;
+    }
   }
 
   private async getRevenueSince(date: Date): Promise<number> {

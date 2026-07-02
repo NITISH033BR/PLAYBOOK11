@@ -213,43 +213,48 @@ export default function AdminMasters() {
   const createMutation = useMutation({
     mutationFn: (d: any) => hierarchyApi.createMaster(d),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Master created'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to create master'),
+    onError: (err: any) => {
+      const msg = !err.response
+        ? 'Backend unreachable — server may be starting up'
+        : err.response?.data?.message || `Server error (${err.response?.status})`;
+      toast.error(msg);
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data: d }: { id: string; data: any }) => hierarchyApi.updateUser(id, d),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Master updated'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to update master'),
+    onError: (err: any) => toast.error(!err.response ? 'Backend unreachable' : err.response?.data?.message || 'Failed to update master'),
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => hierarchyApi.updateStatus(id, { isActive }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Status updated'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to update status'),
+    onError: (err: any) => toast.error(!err.response ? 'Backend unreachable' : err.response?.data?.message || 'Failed to update status'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => hierarchyApi.deleteUser(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Master deleted'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Failed to delete master'),
+    onError: (err: any) => toast.error(!err.response ? 'Backend unreachable' : err.response?.data?.message || 'Failed to delete master'),
   });
 
   const depositMutation = useMutation({
     mutationFn: ({ id, data: d }: { id: string; data: any }) => hierarchyApi.deposit(id, d),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Deposit successful'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Deposit failed'),
+    onError: (err: any) => toast.error(!err.response ? 'Backend unreachable' : err.response?.data?.message || 'Deposit failed'),
   });
 
   const withdrawMutation = useMutation({
     mutationFn: ({ id, data: d }: { id: string; data: any }) => hierarchyApi.withdraw(id, d),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Withdrawal successful'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Withdrawal failed'),
+    onError: (err: any) => toast.error(!err.response ? 'Backend unreachable' : err.response?.data?.message || 'Withdrawal failed'),
   });
 
   const passwordMutation = useMutation({
     mutationFn: ({ id, data: d }: { id: string; data: any }) => hierarchyApi.resetPassword(id, d),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin', 'masters'] }); toast.success('Password reset'); setModal(null); },
-    onError: (err: any) => toast.error(err?.response?.data?.message || 'Password reset failed'),
+    onError: (err: any) => toast.error(!err.response ? 'Backend unreachable' : err.response?.data?.message || 'Password reset failed'),
   });
 
   const handleModalConfirm = (formData?: any) => {

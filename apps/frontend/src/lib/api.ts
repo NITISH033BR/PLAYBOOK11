@@ -6,6 +6,7 @@ const API_URL = "/api/v1";
 export const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
+  timeout: 30000,
 });
 
 api.interceptors.request.use((config) => {
@@ -22,6 +23,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const refreshToken = useAuthStore.getState().refreshToken;
@@ -49,6 +51,13 @@ api.interceptors.response.use(
         }
       }
     }
+
+    if (!error.response && !originalRequest._networkRetry) {
+      originalRequest._networkRetry = true;
+      await new Promise((r) => setTimeout(r, 2000));
+      return api(originalRequest);
+    }
+
     return Promise.reject(error);
   },
 );

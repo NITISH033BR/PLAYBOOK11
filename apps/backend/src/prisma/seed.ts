@@ -409,6 +409,14 @@ async function main() {
     data: { userId: admin.id, balance: 100000, bonus: 5000, locked: 0 },
   });
 
+  await prisma.userHierarchy.create({
+    data: {
+      userId: admin.id,
+      level: 'LEVEL_1_ADMIN',
+      commissionRate: 0,
+    },
+  });
+
   const userPassword = await bcrypt.hash("password123", 12);
   const demoUser = await prisma.user.create({
     data: {

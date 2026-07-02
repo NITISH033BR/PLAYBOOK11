@@ -143,11 +143,20 @@ export default function AdminDashboard() {
   if (isLoading) return <LoadingSkeleton />;
 
   if (error) {
+    const msg = !error.response
+      ? 'Backend unreachable. The server may be starting up — please wait a moment and try again.'
+      : error.response?.data?.message || `Server error (${error.response?.status})`;
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
         <div className="text-4xl mb-4">⚠️</div>
         <p className="text-lg mb-2">Failed to load dashboard data</p>
-        <p className="text-sm text-gray-500">Please try again later</p>
+        <p className="text-sm text-gray-500">{msg}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm transition-colors"
+        >
+          Retry
+        </button>
       </div>
     );
   }
