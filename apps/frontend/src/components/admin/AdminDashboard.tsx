@@ -5,6 +5,7 @@ import { adminApi } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { formatCurrency } from '@/lib/utils';
+import axios from 'axios';
 
 function AnimatedCounter({ value, duration = 2000, className = '' }: { value: number; duration?: number; className?: string }) {
   const [display, setDisplay] = useState(0);
@@ -143,9 +144,11 @@ export default function AdminDashboard() {
   if (isLoading) return <LoadingSkeleton />;
 
   if (error) {
-    const msg = !error.response
-      ? 'Backend unreachable. The server may be starting up — please wait a moment and try again.'
-      : error.response?.data?.message || `Server error (${error.response?.status})`;
+    const msg = axios.isAxiosError(error)
+      ? (!error.response
+        ? 'Backend unreachable. The server may be starting up — please wait a moment and try again.'
+        : (error.response.data as { message?: string } | undefined)?.message || `Server error (${error.response?.status})`)
+      : 'An unexpected error occurred. Please try again.';
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
         <div className="text-4xl mb-4">⚠️</div>
