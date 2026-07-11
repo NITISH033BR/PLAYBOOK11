@@ -143,9 +143,10 @@ export default function AdminDashboard() {
   if (isLoading) return <LoadingSkeleton />;
 
   if (error) {
-    const msg = !error.response
+    const err = error as any;
+    const msg = !err.response
       ? 'Backend unreachable. The server may be starting up — please wait a moment and try again.'
-      : error.response?.data?.message || `Server error (${error.response?.status})`;
+      : err.response?.data?.message || `Server error (${err.response?.status})`;
     return (
       <div className="flex flex-col items-center justify-center py-20 text-gray-400">
         <div className="text-4xl mb-4">⚠️</div>
