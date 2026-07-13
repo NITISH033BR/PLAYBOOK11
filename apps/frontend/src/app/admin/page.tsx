@@ -45,6 +45,12 @@ export default function AdminPage() {
     window.history.replaceState({}, '', url.toString());
   }, [tab]);
 
+  useEffect(() => {
+    if (hydrated && (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN'))) {
+      router.push('/login?redirect=/admin');
+    }
+  }, [hydrated, isAuthenticated, user, router]);
+
   if (!hydrated) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -54,7 +60,6 @@ export default function AdminPage() {
   }
 
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) {
-    router.push('/login?redirect=/admin');
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-2 border-cyan-500 border-t-transparent rounded-full" />
